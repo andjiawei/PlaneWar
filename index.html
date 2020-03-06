@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+
+        body{
+            margin-top: 50px;
+        }
+
+        #container{
+            background-image: url(./img/background.png);
+            height: 568px;
+            width: 320px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .plane{
+            background-image: url(./img/plane.gif);
+            height: 80px;
+            width: 66px;
+            position:absolute;
+            bottom: 0;
+            left:50%;
+            transform: translate(-50%,-50%);
+        }
+
+        .bullet {
+            background-image: url(./img/bullet.png);
+            width: 6px;
+            height: 14px;
+            position: absolute;
+        }
+
+    </style>
+
+</head>
+<body>
+    <div id="container">
+        <div class="plane">
+
+        </div>
+    </div>
+
+    <script>
+        var container = document.querySelector('#container');
+        var plane = document.querySelector('.plane');
+        var bullets = [];
+        var PLANEWIDTH = 66;
+        var PLANEHEIGHT = 80;
+        var BULLETINTERVAL=100;
+        var FLASHBULLETFLYINTERVAL = 50;
+
+        var BULLETWIDTH= 6;
+        var BULLETHEIGHT = 14;
+
+        var BULLETSTEP = 20;
+
+        //只在第一次加载或者页面大小调整时触发,放在mousemove中 浪费性能
+        var containerLeft = 0;
+        var containerTop = 0;
+        var containerRight = 0;
+        var containerBottom = 0;
+
+        containerInit = window.onresize = function(){
+           var offset = container.getBoundingClientRect();
+           containerLeft = offset.left;
+           containerTop = offset.top;
+           containerBottom = offset.bottom;
+           containerRight = offset.right;
+        }
+
+        window.onload =function(){
+            containerInit();
+            setInterval(createBullet,BULLETINTERVAL);
+            setInterval(letBulletsFly,FLASHBULLETFLYINTERVAL);
+        }
+
+        var createBullet = function(){
+            var bullet = document.createElement("div");
+            bullet.classList.add('bullet');
+            var left = parseInt(plane.style.left);
+            var top = parseInt(plane.style.top);
+
+            bullet.style.left = (left - BULLETWIDTH/2) +'px';
+            bullet.style.top = (top - PLANEHEIGHT/2) + 'px';
+            bullets.push(bullet);
+            container.appendChild(bullet);
+        }
+
+        var letBulletsFly = function(){
+
+            bullets.forEach(function(bullet,index,bullets){
+
+                var top = parseInt(bullet.style.top)
+                //控制不让出框 当top-BULLETSTEP>=0 时说明还在框内
+                if(top >= BULLETSTEP){
+                    bullet.style.top = (parseInt(bullet.style.top)-BULLETSTEP) + 'px';
+                }else{
+                    //框外就移除掉这个子弹
+                    container.removeChild(bullet);
+                    bullets.splice(index,1)
+                }
+                
+            });
+
+        }
+
+        container.addEventListener('mousemove',function(event){
+            var mouseLeft = event.clientX;
+            var mouseTop = event.clientY;
+         
+             var planeLeft = mouseLeft - containerLeft;
+             var planeTop = mouseTop - containerTop;
+
+             //触碰到四个边，依然保持在边缘 不出框
+             if(mouseLeft - PLANEWIDTH/2 < containerLeft){
+                planeLeft=PLANEWIDTH/2;
+             }
+             
+             if(mouseLeft + PLANEWIDTH/2 > containerRight){
+                planeLeft=containerRight-containerLeft-PLANEWIDTH/2;
+             }
+
+             if(mouseTop-PLANEHEIGHT/2<containerTop){
+                planeTop=PLANEHEIGHT/2;
+             }
+
+             if(mouseTop+PLANEHEIGHT/2 > containerBottom){
+                planeTop = containerBottom - containerTop - PLANEHEIGHT/2;
+             }
+
+             plane.style.left = planeLeft + 'px'
+             plane.style.top = planeTop + 'px'
+
+
+        });
+    </script>
+    
+</body>
+</html>
